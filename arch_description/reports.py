@@ -20,7 +20,8 @@ from camelot.view.action_steps import ( SelectFile, ChangeObject )
 from jinja2 import Environment, FileSystemLoader
 from arch_description.paths import maindir, templdir
 import os
-import sys 
+import sys
+import natsort
 
 
 
@@ -54,13 +55,15 @@ class DescriptionReport( Action ):
 
         report_fullfilename = addext(report_filename, outformat)
         archive = model_context.get_object()
+        serlist = natsort.natsorted(archive.series, key=lambda ser: ser.signum)
         descpath = os.path.join(settings.CAMELOT_MEDIA_ROOT(), archive.description.name)
         with open(descpath) as descfile:
             description = descfile.read()
         fileloader = FileSystemLoader(templdir)
         env = Environment(loader=fileloader)
         reporttempl = env.get_template('description.md')
-        reportsrc = reporttempl.render(archive = archive, description = description)
+        reportsrc = reporttempl.render(archive = archive, serlist = serlist,
+                description = description)
 
         if converter == 'pandoc':
             import pypandoc
@@ -94,7 +97,8 @@ class LabelReport( Action ):
     
     def model_run( self, model_context ):
         from reportlab.pdfgen import canvas
-        from reportlab.lib.units import mm 
+        from reportlab.lib.units import mm
+        import textwrap
         
         lo = LabelOptions()
         yield ChangeObject( lo )
@@ -108,9 +112,9 @@ class LabelReport( Action ):
         env = Environment(loader=fileloader)
         labeltempl = env.get_template('label.txt')
         archive = model_context.get_object()
-        serlist = sorted(archive.series, key=lambda ser: ser.signum)
+        serlist = natsort.natsorted(archive.series, key=lambda ser: ser.signum)
         for series in serlist:
-            vollist = sorted(series.volumes, key=lambda vol: vol.volno)
+            vollist = natsort.natsorted(series.volumes, key=lambda vol: vol.volno)
             for volume in vollist:
                 curlabel = labeltempl.render(archive = archive, series = series,
                         volume = volume).replace('--', u'\u2013')
@@ -147,7 +151,8 @@ class LabelReport( Action ):
                 c.rect(x, y, labelsize_x, -labelsize_y)
                 labeltext = c.beginText(x, y-fontsize)
                 labeltext.setFont('Times-Roman', fontsize, fontsize)
-                labeltext.textLines(sheet[labelord])
+                labeltext.textLines(textwrap.fill(sheet[labelord], 20, 
+                    replace_whitespace = False))
                 c.drawText(labeltext)
                     
             c.showPage()

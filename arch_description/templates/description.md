@@ -6,7 +6,7 @@ title: "Arkiv {{ archive.creator.crname }} {{ archive.period }}"
 # Arkivbeskrivning
 {{ description }}
 
-{% for series in archive.series|sort(attribute='signum') %} 
+{% for series in serlist %} 
 
 # {{ series.signum }}. {{ series.header }}
 

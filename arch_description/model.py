@@ -80,7 +80,7 @@ class Series( Entity ):
         list_display = ['signum', 'header', 'archive', 'note', 'child_series']
         field_attributes = {'header': {'name': 'Rubrik'},
                 'archive': {'name': 'Arkiv'}, 'note': {'name': u'Anmärkning'},
-                'child_series': {'name': 'Barn'}}
+                'child_series': {'name': 'Underserier'}}
 
 class Volume( Entity ):
     __tablename__ = 'volumes'
