@@ -52,9 +52,10 @@ class Archive( Entity ):
         from arch_description.reports import DescriptionReport, LabelReport
         verbose_name = 'Arkiv'
         verbose_name_plural = 'Arkiv'
-        list_display = ['creator', 'description', 'period']
+        list_display = ['creator', 'description', 'period', 'series']
         field_attributes = {'creator': {'name': 'Arkivbildare'},
-                'description': {'name': 'Beskrivning (fil)'}}
+                'description': {'name': 'Beskrivning (fil)'},
+                'series': {'name': 'Serier'}}
         form_actions = [DescriptionReport(), LabelReport()]
 
 class Series( Entity ):
@@ -79,11 +80,12 @@ class Series( Entity ):
         verbose_name = 'Serie'
         verbose_name_plural = 'Serier'
         list_display = ['signum', 'header', 'archive', 'note', 
-                'child_series', 'parent_series']
+                'child_series', 'volumes', 'parent_series']
         field_attributes = {'header': {'name': 'Rubrik'},
                 'archive': {'name': 'Arkiv'}, 'note': {'name': u'Anmärkning'},
                 'child_series': {'name': 'Underserier'},
-                'parent_series': {'name': u'Överserie'}}
+                'parent_series': {'name': u'Överserie'},
+                'volumes': {'name': 'Volymer'}}
 
 class Volume( Entity ):
     __tablename__ = 'volumes'
