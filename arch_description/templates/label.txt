@@ -1,4 +1,4 @@
 {{ archive.creator.crname }}
-{{ subseries.header }}
+{{ series.header }}
 {{ volume.period }}
-{{ subseries.signum }}:{{ volume.volno }}
+{{ series.signum }}:{{ volume.volno }}

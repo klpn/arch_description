@@ -63,8 +63,10 @@ class Series( Entity ):
     signum = Column(String)
     header = Column(String, info = {'label': 'Serierubrik'})
     archive_id = Column(Integer,  ForeignKey('archives.id'))
+    parent_series_id = Column(Integer, ForeignKey('series.id'))
     note = Column(String, info = {'label': u'Anmärkning'})
     archive = relationship('Archive', backref = 'series')
+    child_series = relationship('Series')
 
     def __unicode__(self):
         if self.archive is None:
@@ -75,39 +77,18 @@ class Series( Entity ):
     class Admin( EntityAdmin ):
         verbose_name = 'Serie'
         verbose_name_plural = 'Serier'
-        list_display = ['signum', 'header', 'archive', 'note']
+        list_display = ['signum', 'header', 'archive', 'note', 'child_series']
         field_attributes = {'header': {'name': 'Rubrik'},
-                'archive': {'name': 'Arkiv'}, 'note': {'name': u'Anmärkning'}}
-
-class Subseries( Entity ):
-    __tablename__ = 'subseries'
-    id = Column(Integer, primary_key = True)
-    signum = Column(String)
-    header = Column(String, info = {'label': 'Serierubrik'})
-    series_id = Column(Integer,  ForeignKey('series.id'))
-    note = Column(String)
-    series = relationship('Series', backref = 'subseries')
-
-    def __unicode__(self):
-        if self.series is None:
-            return self.signum or 'Odefinierad serie'
-        else:
-            return str(self.series.archive.creator.crname) + ':' + self.signum
-
-    class Admin( EntityAdmin ):
-        verbose_name = 'Underserie'
-        verbose_name_plural = 'Underserier'
-        list_display = ['signum', 'header', 'series', 'note']
-        field_attributes = {'header': {'name': 'Rubrik'},
-                'series': {'name': 'Serie'}, 'note': {'name': u'Anmärkning'}}
+                'archive': {'name': 'Arkiv'}, 'note': {'name': u'Anmärkning'},
+                'child_series': {'name': 'Barn'}}
 
 class Volume( Entity ):
     __tablename__ = 'volumes'
     volno = Column(Integer)
-    subseries_id = Column(Integer, ForeignKey('subseries.id'))
+    series_id = Column(Integer, ForeignKey('series.id'))
     period = Column(String)
     note = Column(String)
-    subseries = relationship('Subseries', backref = 'volumes')
+    series = relationship('Series', backref = 'volumes')
     
     def __unicode__(self):
         return str(self.volno) or 'Odefinierad volym'
@@ -115,6 +96,6 @@ class Volume( Entity ):
     class Admin( EntityAdmin ):
         verbose_name = 'Volym'
         verbose_name_plural = 'Volymer'
-        list_display = ['volno', 'period', 'subseries', 'note']   
+        list_display = ['volno', 'period', 'series', 'note']   
         field_attributes = {'volno': {'name': 'Volymnummer'},
-                'subseries': {'name': 'Underserie'}, 'note': {'name': u'Anmärkning'}}
+                'series': {'name': 'Serie'}, 'note': {'name': u'Anmärkning'}}

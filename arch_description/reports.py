@@ -110,11 +110,9 @@ class LabelReport( Action ):
         archive = model_context.get_object()
         serlist = sorted(archive.series, key=lambda ser: ser.signum)
         for series in serlist:
-            subserlist = sorted(series.subseries, key=lambda ser: ser.signum)
-            for subseries in subserlist:
-                vollist = sorted(subseries.volumes, key=lambda vol: vol.volno)
+            vollist = sorted(series.volumes, key=lambda vol: vol.volno)
             for volume in vollist:
-                curlabel = labeltempl.render(archive = archive, subseries = subseries,
+                curlabel = labeltempl.render(archive = archive, series = series,
                         volume = volume).replace('--', u'\u2013')
                 labelstrings_all.append(curlabel)
         

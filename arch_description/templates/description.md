@@ -10,17 +10,14 @@ title: "Arkiv {{ archive.creator.crname }} {{ archive.period }}"
 
 # {{ series.signum }}. {{ series.header }}
 
-{% for subseries in series.subseries|sort(attribute='signum') %} 
-## {{ subseries.signum }}. {{ subseries.header }}
 Arkivbildare: {{ archive.creator.crname }}
 
-{% if subseries.note %}Anmärkning: {{ subseries.note }}{% endif %}
+{% if series.note %}Anmärkning: {{ series.note }}{% endif %}
 
 | Volym | Tid | Anmärkningar (t.ex.\ arkivalietyp) |
 |-------|-----|------------------------------------| 
-{% for volume in subseries.volumes|sort(attribute='volno') -%}
+{% for volume in series.volumes|sort(attribute='volno') -%}
 |{{ volume.volno }}| {{ volume.period }}|{% if volume.note %}{{ volume.note }}{% endif %}|
-{% endfor %}
 {% endfor %}
 
 {% endfor %}
