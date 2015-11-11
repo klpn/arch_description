@@ -12,7 +12,7 @@
 #GNU General Public License for more details.
 
 from sqlalchemy.schema import Column, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 import sqlalchemy.types
 from sqlalchemy.types import *
     
@@ -66,7 +66,8 @@ class Series( Entity ):
     parent_series_id = Column(Integer, ForeignKey('series.id'))
     note = Column(String, info = {'label': u'Anmärkning'})
     archive = relationship('Archive', backref = 'series')
-    child_series = relationship('Series')
+    child_series = relationship('Series', 
+            backref = backref('parent_series', remote_side = [id]))
 
     def __unicode__(self):
         if self.archive is None:
@@ -77,10 +78,12 @@ class Series( Entity ):
     class Admin( EntityAdmin ):
         verbose_name = 'Serie'
         verbose_name_plural = 'Serier'
-        list_display = ['signum', 'header', 'archive', 'note', 'child_series']
+        list_display = ['signum', 'header', 'archive', 'note', 
+                'child_series', 'parent_series']
         field_attributes = {'header': {'name': 'Rubrik'},
                 'archive': {'name': 'Arkiv'}, 'note': {'name': u'Anmärkning'},
-                'child_series': {'name': 'Underserier'}}
+                'child_series': {'name': 'Underserier'},
+                'parent_series': {'name': u'Överserie'}}
 
 class Volume( Entity ):
     __tablename__ = 'volumes'
