@@ -123,12 +123,15 @@ class LabelReport( Action ):
         # Inspired by http://two.pairlist.net/pipermail/reportlab-users/2006-October/005401.html
         labelsize_x = lo.labelsize_x * mm
         labelsize_y = lo.labelsize_y * mm
+        labelsep_x = lo.labelsep_x * mm
+        labelsep_y = lo.labelsep_y * mm
         labels_xy = lo.labels_x * lo.labels_y
         papersize_x = lo.papersize_x * mm
         papersize_y = lo.papersize_y * mm
-        labelsep = labelsize_x
-        margin_x = 14
-        margin_y = 36
+        margin_x = lo.margin_x * mm 
+        margin_y = lo.margin_y * mm 
+        labeltot_x = labelsize_x + labelsep_x
+        labeltot_y = labelsize_y + labelsep_y
         fontsize = 12
 
         def chunks(l, n):
@@ -141,8 +144,8 @@ class LabelReport( Action ):
 
         def LabelPosition(labelord):
             y, x = divmod(labelord, lo.labels_x)
-            x = margin_x + x * labelsep 
-            y = (papersize_y - margin_y) - y * labelsize_y
+            x = margin_x + x * labeltot_x
+            y = (papersize_y - margin_y) - y * labeltot_y
             return x, y
         
         for sheet in labelstrings_bysheet:
@@ -151,7 +154,7 @@ class LabelReport( Action ):
                 c.rect(x, y, labelsize_x, -labelsize_y)
                 labeltext = c.beginText(x, y-fontsize)
                 labeltext.setFont('Times-Roman', fontsize, fontsize)
-                labeltext.textLines(textwrap.fill(sheet[labelord], 20, 
+                labeltext.textLines(textwrap.fill(sheet[labelord], 25, 
                     replace_whitespace = False))
                 c.drawText(labeltext)
                     
@@ -194,7 +197,8 @@ class LabelOptions( object ):
         from camelot.view.controls import delegates
         verbose_name = _('Etikettalternativ')
         form_display = [ 'papersize_x', 'papersize_y', 'labels_x', 'labels_y',
-                'labelsize_x', 'labelsize_y' ]
+                'labelsize_x', 'labelsize_y',  'labelsep_x', 'labelsep_y',
+                'margin_x', 'margin_y' ]
         field_attributes = {'papersize_x': {'delegate': delegates.IntegerDelegate,
             'name': 'Pappersstorlek (X-led)', 'editable': True},
             'papersize_y': {'delegate': delegates.IntegerDelegate,
@@ -206,4 +210,12 @@ class LabelOptions( object ):
             'labelsize_x': {'delegate': delegates.IntegerDelegate,
             'name': 'Etikettstorlek (X-led)', 'editable': True},
             'labelsize_y': {'delegate': delegates.IntegerDelegate,
-            'name': 'Etikettstorlek (Y-led)', 'editable': True}}
+            'name': 'Etikettstorlek (Y-led)', 'editable': True},
+            'labelsep_x': {'delegate': delegates.IntegerDelegate,
+            'name': u'Avstånd mellan etiketter (X-led)', 'editable': True},
+            'labelsep_y': {'delegate': delegates.IntegerDelegate,
+            'name': u'Avstånd mellan etiketter (Y-led)', 'editable': True},
+            'margin_x': {'delegate': delegates.IntegerDelegate,
+            'name': 'Marginal (X-led)', 'editable': True},
+            'margin_y': {'delegate': delegates.IntegerDelegate,
+            'name': 'Marginal (Y-led)', 'editable': True}}

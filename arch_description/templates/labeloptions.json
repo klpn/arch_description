@@ -4,5 +4,9 @@
 	"labels_x": 4,
         "labels_y": 3,
         "labelsize_x": 45,
-        "labelsize_y": 90
+        "labelsize_y": 90,
+	"labelsep_x": 0,
+	"labelsep_y": 0,
+	"margin_x": 5,
+	"margin_y": 13
 }
