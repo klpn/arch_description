@@ -1,5 +1,5 @@
 # arch_description
-This program is intended to be used to manage simple archival descriptions. To be sure, there are already sophisticated free tools like [ICA Atom](https://wiki.ica-atom.org/Main_Page) available to this aim; however, to my knowledge, they suffer from a lack of ability to easily generate reports adapted to local conditions, and as a result, archivists and other people who are working with smaller archives and who lack access to proprietary multi-user tools are often stuck with awkward word-processing or spreadsheet templates.
+This program is intended to be used to manage simple archival descriptions. To be sure, there are already sophisticated free tools like [AtoM](https://www.accesstomemory.org/en/) available to this aim; however, to my knowledge, they suffer from a lack of ability to easily generate reports adapted to local conditions, and as a result, archivists and other people who are working with smaller archives and who lack access to proprietary multi-user tools are often stuck with awkward word-processing or spreadsheet templates.
 
 The user and database interfaces are based on [Camelot](http://www.python-camelot.com/) and use SQLite as a database backend. Reports are generated using easily customizable [Jinja2](https://github.com/mitsuhiko/jinja2) templates and [Pandoc](https://github.com/jgm/pandoc) (for full archival descriptions in DOCX, TeX or PDF format) or the basic version of [ReportLab](http://www.reportlab.com/) (for box labels). [Pypandoc](https://github.com/bebraw/pypandoc) is used to connect with Pandoc: this package can be installed on a Mac OS X or Windows system from [prebuilt binaries](https://pypi.python.org/pypi/pypandoc/) which include Pandoc.
 
@@ -18,3 +18,5 @@ If you choose to print a description (*Spara förteckning*), the report will be 
 * The DOCX document `description.docx` (for DOCX output) or the LaTeX template `description.tex` (for LaTeX or PDF output). These files define header and footer and document styles.
 
 If you choose to print box labels (*Spara etiketter*), you will be presented with a dialog where you can choose paper and label size, number of labels on each sheet and other options. The default options are read from the file `labeloptions.json`, and the labels themselves are defined in the plain text template `label.txt`.
+
+Functions for supporting modern Swedish so-called process-oriented description, besides the data model described above, are under construction.
