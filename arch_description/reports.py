@@ -30,6 +30,11 @@ class DescriptionReport( Action ):
     icon = Icon('tango/22x22/mimetypes/x-office-document.png')
     
     def model_run( self, model_context ):
+        objclass = model_context.get_object().__class__.__name__
+        if objclass == 'Archive':
+            templname = 'description'
+        elif objclass == 'Creator':
+            templname = 'procreport'
         outoptions = OutputOptions()
         yield ChangeObject( outoptions )
         outformat = outoptions.outformat
@@ -37,38 +42,44 @@ class DescriptionReport( Action ):
         if outformat == 'docx':
             pdoc_writer = 'docx'
             templsetting = 'reference-docx'
-            templname = os.path.join(templdir, 'description.docx')
+            templfullname = os.path.join(templdir, templname + '.docx')
             filefilter = 'Word-dokument (*.docx);;Alla (*.*)'
         elif outformat == 'pdf':
             pdoc_writer = 'latex'
             templsetting = 'template'
-            templname = os.path.join(templdir, 'description.tex')
+            templfullname = os.path.join(templdir, templname + '.tex')
             filefilter = 'PDF-dokument (*.pdf);;Alla (*.*)'
         elif outformat == 'latex':
             pdoc_writer = 'latex'
             templsetting = 'template'
-            templname = os.path.join(templdir, 'description.tex')
+            templfullname = os.path.join(templdir, templname + '.tex')
             filefilter = 'LaTeX (*.tex);;Alla (*.*)'
         select_report_file = SelectFile( filefilter )
         select_report_file.existing = False
         report_filename = (yield select_report_file)[0]
 
         report_fullfilename = addext(report_filename, outformat)
-        archive = model_context.get_object()
-        serlist = natsort.natsorted(archive.series, key=lambda ser: ser.signum)
-        descpath = os.path.join(settings.CAMELOT_MEDIA_ROOT(), archive.description.name)
-        with open(descpath) as descfile:
-            description = descfile.read()
         fileloader = FileSystemLoader(templdir)
         env = Environment(loader=fileloader)
-        reporttempl = env.get_template('description.md')
-        reportsrc = reporttempl.render(archive = archive, serlist = serlist,
-                description = description)
+        reporttempl = env.get_template(templname + '.md')
+        if objclass == 'Archive':
+            archive = model_context.get_object()
+            serlist = natsort.natsorted(archive.series, key=lambda ser: ser.signum)
+            descpath = os.path.join(settings.CAMELOT_MEDIA_ROOT(), archive.description.name)
+            with open(descpath) as descfile:
+                description = descfile.read()
+            reportsrc = reporttempl.render(archive = archive, serlist = serlist,
+                    description = description)
+        elif objclass == 'Creator':
+            creator = model_context.get_object()
+            objlist = natsort.natsorted(creator.arch_objects, key=lambda obj: obj.signum)
+            divlist = natsort.natsorted(creator.divisions, key=lambda div: div.signum)
+            reportsrc = reporttempl.render(objlist = objlist, divlist = divlist)
 
         if converter == 'pandoc':
             import pypandoc
             pdoc_args = ['--smart', '--standalone', '--toc', 
-                    '--' + templsetting + '=' + templname]
+                    '--' + templsetting + '=' + templfullname]
             pypandoc.convert(reportsrc, pdoc_writer, format = 'md', 
                 outputfile = report_fullfilename, extra_args = pdoc_args)
             if (sys.platform == 'win32' and outformat == 'docx'):
@@ -78,13 +89,13 @@ class DescriptionReport( Action ):
 
         elif converter == 'docverter':
             import requests
-            base_templ = os.path.basename(templname)
+            base_templ = os.path.basename(templfullname)
             docv_data = {'smart': 'true', 'from': 'markdown', 'to': outformat}
             docv_files = {'input_files[]': ('reportsrc.md', reportsrc)} 
             
             if outformat != 'pdf':
                 docv_data[templsetting.replace('-', '_')] = base_templ
-                docv_files['other_files[]'] = (base_templ, open(templname))
+                docv_files['other_files[]'] = (base_templ, open(templfullname))
 
             docv_req = requests.post('http://c.docverter.com/convert',
                     data = docv_data, files = docv_files)
