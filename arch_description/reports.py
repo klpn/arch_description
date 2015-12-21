@@ -110,6 +110,7 @@ class LabelReport( Action ):
         from reportlab.pdfgen import canvas
         from reportlab.lib.units import mm
         import textwrap
+        objclass = model_context.get_object().__class__.__name__
         
         lo = LabelOptions()
         yield ChangeObject( lo )
@@ -121,15 +122,48 @@ class LabelReport( Action ):
         labelstrings_all = []
         fileloader = FileSystemLoader(templdir)
         env = Environment(loader=fileloader)
-        labeltempl = env.get_template('label.txt')
-        archive = model_context.get_object()
-        serlist = natsort.natsorted(archive.series, key=lambda ser: ser.signum)
-        for series in serlist:
-            vollist = natsort.natsorted(series.volumes, key=lambda vol: vol.volno)
-            for volume in vollist:
-                curlabel = labeltempl.render(archive = archive, series = series,
+        if objclass == 'Archive':
+            labeltempl = env.get_template('label.txt')
+            archive = model_context.get_object()
+            serlist = natsort.natsorted(archive.series, key=lambda ser: ser.signum)
+            for series in serlist:
+                vollist = natsort.natsorted(series.volumes, key=lambda vol: vol.volno)
+                for volume in vollist:
+                    curlabel = labeltempl.render(archive = archive, series = series,
                         volume = volume).replace('--', u'\u2013')
-                labelstrings_all.append(curlabel)
+                    labelstrings_all.append(curlabel)
+        elif objclass == 'Creator':
+            objtempl = env.get_template('objlabel.txt')
+            proctempl = env.get_template('proclabel.txt')
+            typetempl = env.get_template('typelabel.txt')
+            creator = model_context.get_object()
+            objlist = natsort.natsorted(creator.arch_objects, key=lambda obj: obj.signum)
+            for obj in objlist:
+                unitlist = natsort.natsorted(obj.storage_units,
+                        key=lambda unit: unit.signum)
+                for unit in unitlist:
+                    curlabel = objtempl.render(obj = obj, unit = unit).replace('--', u'\u2013')
+                    labelstrings_all.append(curlabel)
+            divlist = natsort.natsorted(creator.divisions, key=lambda div: div.signum)
+            for div in divlist:
+                proclist =  natsort.natsorted(div.processes, key=lambda proc: proc.signum)
+                for proc in proclist:
+                    unitlist = natsort.natsorted(proc.storage_units,
+                        key=lambda unit: unit.signum)
+                    for unit in unitlist:
+                        curlabel = proctempl.render(div = div, proc = proc,
+                            unit = unit).replace('--', u'\u2013')
+                        labelstrings_all.append(curlabel)
+                    acttypelist = natsort.natsorted(proc.acttypes, 
+                            key=lambda atype: atype.signum)
+                    for acttype in acttypelist:
+                        unitlist = natsort.natsorted(acttype.storage_units,
+                            key=lambda unit: unit.signum)
+                        for unit in unitlist:
+                            curlabel = typetempl.render(div = div, proc = proc,
+                                    acttype = acttype, unit = unit).replace('--', u'\u2013')
+                            labelstrings_all.append(curlabel)
+
         
         # Inspired by http://two.pairlist.net/pipermail/reportlab-users/2006-October/005401.html
         labelsize_x = lo.labelsize_x * mm
