@@ -14,7 +14,7 @@ if sys.platform == 'win32':
     base = 'Win32GUI'
 
 def include_files():
-	path_bases = {'camelot/art': 'C:\\Python27\\Lib\\site-packages\\camelot\\art\\'}
+	path_bases = {'camelot/art': 'C:\\Python27\\Lib\\site-packages\\camelot\\art\\', 'packaging':'C:\\Python27\\Lib\\site-packages\\packaging' }
         
 	zip_includes = []
 	for key, val in path_bases.items():
@@ -33,9 +33,23 @@ build_exe_options = {'include_files': ['arch_description/toc16.vbs',
     'arch_description/data/', 
     'arch_description/templates/labeloptions.json', 
     'arch_description/templates/label.txt', 
+    'arch_description/templates/objlabel.txt', 
+    'arch_description/templates/proclabel.txt', 
+    'arch_description/templates/typelabel.txt', 
+    'arch_description/templates/logo.eps', 
     'arch_description/templates/description.docx', 
     'arch_description/templates/description.md', 
+    'arch_description/templates/description.sty', 
     'arch_description/templates/description.tex',
+    'arch_description/templates/procdesc.docx', 
+    'arch_description/templates/procdesc.md', 
+    'arch_description/templates/procdesc.tex',
+    'arch_description/templates/procreport.docx', 
+    'arch_description/templates/procreport.md', 
+    'arch_description/templates/procreport.tex',
+    'arch_description/templates/shipreport.docx', 
+    'arch_description/templates/shipreport.md', 
+    'arch_description/templates/shipreport.tex',
     'C:\\Python27\\Lib\\site-packages\\pypandoc\\files\\pandoc.exe'],
     'zip_includes': include_files()}
 

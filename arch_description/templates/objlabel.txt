@@ -1,4 +1,7 @@
 {{ obj.creator.crname }}
-{{ obj.header }}
-{{ unit.extent }}
+
+{{ obj.header|wordwrap(22) }}
+
+{{ unit.extent|wordwrap(22) }}
+
 {{ obj.signum }}:{{ unit.signum }}

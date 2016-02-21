@@ -1,17 +1,26 @@
 ---
 documentclass: report
-title: "Bevarandeförteckning"
+papersize: a4paper
+geometry: margin=3cm
+lang: sv
+mainfont: Arial
+title: "Bevarandeförteckning {{ creator.crname }} {{ creator.procperiod }}"
 ---
+
+\fancyhead{}
+\fancyhead[le,lo]{\includegraphics[width=1cm]{{ '{' }}{{ logo }}{{ '}' }} 
+\uppercase{{ '{' }}{{ creator.crname }}{{ '}}' }}
+\fancyhead[re,ro]{\uppercase{Bevarandeförteckning} {{ creator.procperiod }}{{ '}' }}
 
 {% macro unittable(parsignum, unitlist) -%}
 | Förvarings-id | Omfatttning | Media | Förvaringsenhet | Placering | Kommentar |
 | ------------- | ----------- | ----- | --------------- | --------- | --------- |
 {% for unit in unitlist|sort(attribute='signum') -%}
-|{{ parsignum }}:{{ unit.signum }} |{{ unit.extent }} |{{ unit.medium }} |{{ unit.unittype }} |{{ unit.place  }} |{{ unit.note }} |
+|{{ parsignum }}:{{ unit.signum }} |{{ unit.extent }} |{{ unit.medium }} |{{ unit.unittype }} |{{ unit.place  }} |{% if unit.note %}{{ unit.note }}{% endif %} |
 {% endfor %}
 {%- endmacro %}
 
-# 0 Grupper av handlingar
+# 0. Grupper av handlingar
 
 {% for object in objlist %} 
 
@@ -21,7 +30,7 @@ Processer handlingarna uppkommit i: {{ object.processes }}
 
 Kan omfattas av sekretess: {{ object.classified }}
 
-Kommentar: {{ object.note }}
+Kommentar: {% if object.note %}{{ object.note }}{% endif %}
 
 {{ unittable(object.signum, object.storage_units) }}
 
@@ -37,13 +46,13 @@ Kommentar: {{ object.note }}
 
 ## {{ concsignum }}. {{ process.header }}
 
-Handlingar som redovisas på processbeteckningen: {{ process.acts }}
+Handlingar som redovisas på processbeteckningen: {% if process.acts %}{{ process.acts }}{% endif %}
 
-Handlingar som redovisas separat: {{ process.acts_separate }}
+Handlingar som redovisas separat: {% if process.acts_separate %}{{ process.acts_separate }}{% endif %}
 
 Kan omfattas av sekretess: {{ process.classified }}
 
-Kommentar: {{ process.note }}
+Kommentar: {% if process.note %}{{ process.note }}{% endif %}
 
 {{ unittable(concsignum, process.storage_units) }}
 
@@ -55,7 +64,7 @@ Kommentar: {{ process.note }}
 
 Kan omfattas av sekretess: {{ acttype.classified }}
 
-Kommentar: {{ acttype.note }}
+Kommentar: {% if acttype.note %}{{ acttype.note }}{% endif %}
 
 {{ unittable(concsignum, acttype.storage_units) }}
 

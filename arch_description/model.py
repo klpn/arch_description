@@ -24,25 +24,51 @@ class Creator( Entity ):
     __tablename__ = 'creators'
     id = Column(Integer, primary_key = True)
     crname = Column(String, info = {'label': 'Namn'})
+    description = Column(File)
+    procperiod = Column(String)
 
     def __unicode__(self):
         return self.crname or 'Ej namngiven arkivbildare'
 
     class Admin( EntityAdmin ):
-        from arch_description.reports import DescriptionReport, LabelReport
+        from arch_description.reports import DescriptionReport, LabelReport, ProcdescReport
         verbose_name = 'Arkivbildare'
         verbose_name_plural = 'Arkivbildare'
-        list_display = ['crname']
-        field_attributes = {'crname': {'name': 'Namn'}}
-        form_actions = [DescriptionReport(), LabelReport()]
+        list_display = ['crname', 'description', 'procperiod']
+        field_attributes = {'crname': {'name': 'Namn'}, 
+                'description': {'name': 'Beskrivning (fil)'},
+                'procperiod': {'procperiod': u'Period (verksamhetsbaserad redovisning)'}}
+        form_actions = [DescriptionReport(), LabelReport(), ProcdescReport()]
+
+class Agency( Entity ):
+    __tablename__ = 'agencies'
+    id = Column(Integer, primary_key = True)
+    agname = Column(String)
+    agcode = Column(String)
+
+    def __unicode__(self):
+        return self.agname or 'Ej namngiven arkivinstitution'
+
+    class Admin( EntityAdmin ):
+        verbose_name = 'Arkivinstitution'
+        verbose_name_plural = 'Arkivinstitutioner'
+        list_display = ['agname', 'agcode']
+        field_attributes = {'agname': {'name': 'Namn'}, 
+                'agcode': {'name': 'Kod'}}
 
 class Archive( Entity ):
     __tablename__ = 'archives'
     id = Column(Integer, primary_key = True)
     creator_id = Column(Integer, ForeignKey('creators.id'))
+    agency_id = Column(Integer, ForeignKey('agencies.id'))
+    agency_code = Column(String)
     description = Column(File)
     period = Column(String)
+    extent = Column(Integer)
+    description_date = Column(String)
+    described_by = Column(String)
     creator = relationship('Creator', backref = 'archives')
+    agency = relationship('Agency', backref = 'archives')
 
     def __unicode__(self):
         if self.creator is None:
@@ -51,14 +77,18 @@ class Archive( Entity ):
             return self.creator.crname
 
     class Admin( EntityAdmin ):
-        from arch_description.reports import DescriptionReport, LabelReport
-        verbose_name = 'Arkiv'
-        verbose_name_plural = 'Arkiv'
-        list_display = ['creator', 'description', 'period', 'series']
+        from arch_description.reports import DescriptionReport, LabelReport, ShippingReport, EadReport
+        verbose_name = u'Arkiv (med allmänna arkivschemat)'
+        verbose_name_plural = u'Arkiv (med allmänna arkivschemat)'
+        list_display = ['creator', 'agency', 'agency_code', 'description', 'period', 'series', 'extent', 'description_date', 'described_by']
         field_attributes = {'creator': {'name': 'Arkivbildare'},
+                'agency': {'name': 'Arkivinstitution'},
+                'agency_code': {'name': 'Kod hos arkivinstitution'},
                 'description': {'name': 'Beskrivning (fil)'},
-                'series': {'name': 'Serier'}}
-        form_actions = [DescriptionReport(), LabelReport()]
+                'series': {'name': 'Serier'}, 'extent': {'name': u'Omfång'},
+                'description_date': {'name': u'Beskrivning upprättad'},
+                'described_by': {'name': u'Beskrivning upprättad av'}}
+        form_actions = [DescriptionReport(), LabelReport(), ShippingReport(), EadReport()]
 
 class ArchObject( Entity ):
     __tablename__ = 'arch_objects'
@@ -206,13 +236,14 @@ class Acttype( Entity ):
         field_attributes = {'process': {'name': u'Process'},
                 'signum': {'name': 'Typbeteckning'},
                 'header': {'name': 'Typer'},
+                'classified': {'name': 'Sekretess'},
                 'note': {'name': 'Kommentar'},
                 'storage_units': {'name': u'Förvaringsenheter'}}   
  
 class StorageUnit( Entity ):
     __tablename__ = 'storage_units'
     id = Column(Integer, primary_key = True)
-    signum = Column(String)
+    signum = Column(Integer)
     extent = Column(String)
     medium = Column(String)
     unittype = Column(String)
@@ -226,10 +257,10 @@ class StorageUnit( Entity ):
     arch_object = relationship('ArchObject', backref = 'storage_units')
 
     def __unicode__(self):
-        if self.creator is None:
+        if self.signum is None:
             return str(self.id) or u'Odefinierad förvaringsenhet'
         else:
-            return self.signum
+            return str(self.signum)
 
     class Admin( EntityAdmin ):
         from arch_description.reports import DescriptionReport, LabelReport

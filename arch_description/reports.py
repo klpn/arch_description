@@ -22,8 +22,40 @@ from arch_description.paths import maindir, templdir
 import os
 import sys
 import natsort
+from operator import attrgetter
 
+def outformat_options(outformat, templname):
+    if outformat == 'docx':
+        pdoc_writer = 'docx'
+        templsetting = 'reference-docx'
+        templfullname = os.path.join(templdir, templname + '.docx')
+        filefilter = 'Word-dokument (*.docx);;Alla (*.*)'
+    elif outformat == 'pdf':
+        pdoc_writer = 'latex'
+        templsetting = 'template'
+        templfullname = os.path.join(templdir, templname + '.tex')
+        filefilter = 'PDF-dokument (*.pdf);;Alla (*.*)'
+    elif outformat == 'latex':
+        pdoc_writer = 'latex'
+        templsetting = 'template'
+        templfullname = os.path.join(templdir, templname + '.tex')
+        filefilter = 'LaTeX (*.tex);;Alla (*.*)'
+    return {'pdoc_writer': pdoc_writer, 'templsetting': templsetting,
+            'templfullname': templfullname, 'filefilter': filefilter}
 
+def convert_report(templsetting, templfullname, reportsrc,
+        report_fullfilename, pdoc_writer, pdoc_extra_args = []):
+    import pypandoc
+    pdoc_args = (['--smart', '--standalone', '--latex-engine=xelatex', 
+            '--columns=60', '--' + templsetting + '=' + templfullname,
+            '--latex-engine-opt=-include-directory=' + templdir] + 
+            pdoc_extra_args)
+    pypandoc.convert(reportsrc, pdoc_writer, format = 'md', 
+    outputfile = report_fullfilename, extra_args = pdoc_args)
+    if (sys.platform == 'win32' and pdoc_writer == 'docx' and '--toc' in pdoc_args):
+        import subprocess
+        tocscript = os.path.join(maindir, 'toc16.vbs')
+        subprocess.Popen(['wscript', tocscript, report_fullfilename])
 
 class DescriptionReport( Action ):
     verbose_name = _(u'Spara förteckning')
@@ -38,23 +70,8 @@ class DescriptionReport( Action ):
         outoptions = OutputOptions()
         yield ChangeObject( outoptions )
         outformat = outoptions.outformat
-        converter = outoptions.converter
-        if outformat == 'docx':
-            pdoc_writer = 'docx'
-            templsetting = 'reference-docx'
-            templfullname = os.path.join(templdir, templname + '.docx')
-            filefilter = 'Word-dokument (*.docx);;Alla (*.*)'
-        elif outformat == 'pdf':
-            pdoc_writer = 'latex'
-            templsetting = 'template'
-            templfullname = os.path.join(templdir, templname + '.tex')
-            filefilter = 'PDF-dokument (*.pdf);;Alla (*.*)'
-        elif outformat == 'latex':
-            pdoc_writer = 'latex'
-            templsetting = 'template'
-            templfullname = os.path.join(templdir, templname + '.tex')
-            filefilter = 'LaTeX (*.tex);;Alla (*.*)'
-        select_report_file = SelectFile( filefilter )
+        of_opt = outformat_options(outformat, templname)
+        select_report_file = SelectFile( of_opt['filefilter'] )
         select_report_file.existing = False
         report_filename = (yield select_report_file)[0]
 
@@ -62,45 +79,83 @@ class DescriptionReport( Action ):
         fileloader = FileSystemLoader(templdir)
         env = Environment(loader=fileloader)
         reporttempl = env.get_template(templname + '.md')
+        logo = os.path.join(templdir, "logo")
         if objclass == 'Archive':
             archive = model_context.get_object()
             serlist = natsort.natsorted(archive.series, key=lambda ser: ser.signum)
             descpath = os.path.join(settings.CAMELOT_MEDIA_ROOT(), archive.description.name)
             with open(descpath) as descfile:
-                description = descfile.read()
+                description = unicode(descfile.read(), 'utf-8')
             reportsrc = reporttempl.render(archive = archive, serlist = serlist,
-                    description = description)
+                    description = description, logo = logo)
         elif objclass == 'Creator':
             creator = model_context.get_object()
             objlist = natsort.natsorted(creator.arch_objects, key=lambda obj: obj.signum)
             divlist = natsort.natsorted(creator.divisions, key=lambda div: div.signum)
-            reportsrc = reporttempl.render(objlist = objlist, divlist = divlist)
+            reportsrc = reporttempl.render(creator = creator, 
+                    objlist = objlist, divlist = divlist, logo = logo)
 
-        if converter == 'pandoc':
-            import pypandoc
-            pdoc_args = ['--smart', '--standalone', '--toc', 
-                    '--' + templsetting + '=' + templfullname]
-            pypandoc.convert(reportsrc, pdoc_writer, format = 'md', 
-                outputfile = report_fullfilename, extra_args = pdoc_args)
-            if (sys.platform == 'win32' and outformat == 'docx'):
-                import subprocess
-                tocscript = os.path.join(maindir, 'toc16.vbs')
-                subprocess.Popen(['wscript', tocscript, report_fullfilename])
+        convert_report(of_opt['templsetting'], of_opt['templfullname'], reportsrc,
+                report_fullfilename, of_opt['pdoc_writer'], ['--toc'])
 
-        elif converter == 'docverter':
-            import requests
-            base_templ = os.path.basename(templfullname)
-            docv_data = {'smart': 'true', 'from': 'markdown', 'to': outformat}
-            docv_files = {'input_files[]': ('reportsrc.md', reportsrc)} 
-            
-            if outformat != 'pdf':
-                docv_data[templsetting.replace('-', '_')] = base_templ
-                docv_files['other_files[]'] = (base_templ, open(templfullname))
+class ShippingReport( Action ):
+    verbose_name = _(u'Spara leveransreversal')
+    icon = Icon('tango/22x22/mimetypes/x-office-document.png')
+    
+    def model_run( self, model_context ):
+        templname = 'shipreport'
+        outoptions = OutputOptions()
+        yield ChangeObject( outoptions )
+        outformat = outoptions.outformat
+        of_opt = outformat_options(outformat, templname)
+        select_report_file = SelectFile( of_opt['filefilter'] )
+        select_report_file.existing = False
+        report_filename = (yield select_report_file)[0]
 
-            docv_req = requests.post('http://c.docverter.com/convert',
-                    data = docv_data, files = docv_files)
-            with open(report_fullfilename, 'wb') as outfile:
-                outfile.write(docv_req.content)
+        report_fullfilename = addext(report_filename, outformat)
+        fileloader = FileSystemLoader(templdir)
+        env = Environment(loader=fileloader)
+        reporttempl = env.get_template(templname + '.md')
+        archive = model_context.get_object()
+        archive.voltot = 0
+        serlist = natsort.natsorted(archive.series, key=lambda ser: ser.signum)
+        for series in serlist:
+            if series.volumes:
+                series.voltot = max(vol.volno for vol in series.volumes)
+                archive.voltot = archive.voltot + series.voltot
+        reportsrc = reporttempl.render(archive = archive, serlist = serlist)
+
+        convert_report(of_opt['templsetting'], of_opt['templfullname'], reportsrc,
+                report_fullfilename, of_opt['pdoc_writer'])
+
+class ProcdescReport( Action ):
+    verbose_name = _(u'Spara arkivbeskrivning')
+    icon = Icon('tango/22x22/mimetypes/x-office-document.png')
+    
+    def model_run( self, model_context ):
+        templname = 'procdesc'
+        outoptions = OutputOptions()
+        yield ChangeObject( outoptions )
+        outformat = outoptions.outformat
+        of_opt = outformat_options(outformat, templname)
+        select_report_file = SelectFile( of_opt['filefilter'] )
+        select_report_file.existing = False
+        report_filename = (yield select_report_file)[0]
+
+        report_fullfilename = addext(report_filename, outformat)
+        fileloader = FileSystemLoader(templdir)
+        env = Environment(loader=fileloader)
+        reporttempl = env.get_template(templname + '.md')
+        logo = os.path.join(templdir, "logo")
+        creator = model_context.get_object()
+        descpath = os.path.join(settings.CAMELOT_MEDIA_ROOT(), creator.description.name)
+        with open(descpath) as descfile:
+            description = unicode(descfile.read(), 'utf-8')
+        reportsrc = reporttempl.render(creator = creator, 
+                description = description, logo = logo)
+
+        convert_report(of_opt['templsetting'], of_opt['templfullname'], reportsrc,
+                report_fullfilename, of_opt['pdoc_writer'])
 
 class LabelReport( Action ):
     verbose_name = _('Spara etiketter')
@@ -109,7 +164,7 @@ class LabelReport( Action ):
     def model_run( self, model_context ):
         from reportlab.pdfgen import canvas
         from reportlab.lib.units import mm
-        import textwrap
+        #import textwrap
         objclass = model_context.get_object().__class__.__name__
         
         lo = LabelOptions()
@@ -177,7 +232,7 @@ class LabelReport( Action ):
         margin_y = lo.margin_y * mm 
         labeltot_x = labelsize_x + labelsep_x
         labeltot_y = labelsize_y + labelsep_y
-        fontsize = 12
+        fontsize = 10
 
         def chunks(l, n):
             n = max(1, n)
@@ -196,16 +251,35 @@ class LabelReport( Action ):
         for sheet in labelstrings_bysheet:
             for labelord in range(0, len(sheet)):
                 x, y = LabelPosition(labelord)
-                c.rect(x, y, labelsize_x, -labelsize_y)
-                labeltext = c.beginText(x, y-fontsize)
-                labeltext.setFont('Times-Roman', fontsize, fontsize)
-                labeltext.textLines(textwrap.fill(sheet[labelord], 25, 
-                    replace_whitespace = False))
+                #c.rect(x, y, labelsize_x, -labelsize_y)
+                labeltext = c.beginText(x+fontsize, y-2*fontsize)
+                labeltext.setFont('Helvetica', fontsize, fontsize)
+                labeltext.textLines(sheet[labelord])
+                #labeltext.textLines(textwrap.fill(sheet[labelord], 25, 
+                #    drop_whitespace = True, replace_whitespace = False))
                 c.drawText(labeltext)
                     
             c.showPage()
 
         c.save()
+
+class EadReport( Action ):
+    verbose_name = _(u'Spara EAD XML')
+    icon = Icon('tango/22x22/mimetypes/x-office-document.png')
+
+    def model_run( self, model_context ):
+        templname = 'ead'
+        filefilter = 'XML-dokument (*.xml);;Alla (*.*)'
+        select_report_file = SelectFile( filefilter )
+        select_report_file.existing = False
+        report_filename = (yield select_report_file)[0]
+        report_fullfilename = addext(report_filename, 'xml')
+        fileloader = FileSystemLoader(templdir)
+        env = Environment(loader=fileloader)
+        reporttempl = env.get_template(templname + '.xml')
+        archive = model_context.get_object()
+        serlist = natsort.natsorted(archive.series, key=lambda ser: ser.signum)
+        reporttempl.stream(archive = archive, serlist = serlist).dump(report_fullfilename, encoding='utf-8')
 
 def addext(filename, ext):
         if os.path.splitext(filename)[1] == '':

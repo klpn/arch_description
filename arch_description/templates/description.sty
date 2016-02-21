@@ -1,0 +1,21 @@
+\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\ProvidesPackage{description}[2016/01/17 Style for archival descriptions and related documents.]
+
+\addto\captionsswedish{\renewcommand{\chaptername}{}} % Tar bort ''Kapitel'' från kapitelnamn.
+
+\def\@makechapterhead#1{% Inställningar för rubriker på nivå 1.
+  {\parindent \z@ \raggedright \normalfont
+    \Large\bfseries \ifnum \c@secnumdepth >\m@ne
+        \@chapapp \thechapter\hspace{0.5em}
+    \fi
+    \interlinepenalty\@M
+    #1\par\nobreak
+  }}
+\def\@makeschapterhead#1{% Inställningar för källförteckningsrubrik. 
+  {\parindent \z@ \raggedright
+    \normalfont
+    \interlinepenalty\@M
+    \Large\bfseries  #1\par\nobreak
+  }}
+
+

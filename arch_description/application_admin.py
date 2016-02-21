@@ -27,13 +27,13 @@ class MyApplicationAdmin(ApplicationAdmin):
     def get_sections(self):
         from camelot.model.memento import Memento
         from camelot.model.i18n import Translation
-        from arch_description.model import (Creator, Archive, Series, Volume, 
+        from arch_description.model import (Creator, Agency, Archive, Series, Volume, 
         ArchObject, Division, Procgroup, Process, Acttype, StorageUnit)
         from arch_description.reports import DescriptionReport, LabelReport 
         return [ Section( _('Arkiv'),
                           self,
                           Icon('tango/22x22/apps/system-users.png'),
-                          items = [Creator, Archive, Series, Volume, 
+                          items = [Creator, Agency, Archive, Series, Volume, 
                               ArchObject, Division, Procgroup, Process, 
                               Acttype, StorageUnit] ),
                  Section( _('Configuration'),

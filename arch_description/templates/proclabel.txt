@@ -1,4 +1,7 @@
 {{ div.creator.crname }}
-{{ proc.header }}
-{{ unit.extent }}
+
+{{ proc.header|wordwrap(22) }}
+
+{{ unit.extent|wordwrap(22) }}
+
 {{ div.signum }}.{{ proc.signum }}:{{ unit.signum }}

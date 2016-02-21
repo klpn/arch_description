@@ -169,6 +169,10 @@ $endfor$
 \renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
 \fi
 
+\let\oldsection\section
+\renewcommand{\section}{\newpage\oldsection}
+\let\oldsubsection\subsection
+\renewcommand{\subsection}{\newpage\oldsubsection}
 
 \usepackage{fancyhdr}
 \pagestyle{fancyplain}

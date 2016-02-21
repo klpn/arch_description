@@ -1,4 +1,7 @@
 {{ archive.creator.crname }}
-{{ series.header }}
+
+{{ series.header|wordwrap(22) }}
+
 {{ volume.period }}
+
 {{ series.signum }}:{{ volume.volno }}

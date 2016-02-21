@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ead xmlns="http://ead3.archivists.org/schema/">
+	<control>
+		<recordid>SE/{{ archive.agency.agcode }}/{{ archive.agency_code }}</recordid>
+		<filedesc>
+			<titlestmt>
+				<titleproper>{{ archive.creator.crname }}</titleproper>
+			</titlestmt>
+		</filedesc>
+		<maintenancestatus value="new"/>
+		<maintenanceagency>
+			<agencycode>{{ archive.agency.agcode }}</agencycode>
+			<agencyname>{{ archive.agency.agname }}</agencyname>
+		</maintenanceagency>
+		<maintenancehistory>
+			<maintenanceevent>
+				<eventtype value="created"/>
+				<eventdatetime>{{ archive.description_date }}</eventdatetime>
+				<agenttype value="human"/>
+				<agent>{{ archive.described_by }}</agent>
+			</maintenanceevent>
+		</maintenancehistory>
+	</control>
+	<archdesc level="fonds">
+		<did>
+			<unitid>{{ archive.agency_code }}</unitid>
+			<unittitle>{{ archive.creator.crname }}</unittitle>
+			<unitdate>{{ archive.period }}</unitdate>
+			<origination label="Creator">
+				<name><part>{{ archive.creator.crname }}</part></name>
+			</origination>
+			<repository>
+				<name><part>{{ archive.agency.agname }}</part></name>
+			</repository>
+			<physdesc>{{ archive.extent }} hyllmeter</physdesc>
+		</did>
+		<dsc>
+			{% for series in serlist %}
+			<c level="series">
+				<did>
+					<unitid>{{ series.signum }}</unitid>
+					<unittitle>{{ series.header }}</unittitle>
+					{% if series.note %}<didnote>{{ series.note }}</didnote>{% endif %}
+				</did>
+				{% for volume in series.volumes|sort(attribute='volno') %}
+				<c level="file">
+					<did>
+						<unitid>{{ volume.volno }}</unitid>
+						<unitdate>{{ volume.period }}</unitdate>
+						{% if volume.note %}<didnote>{{ volume.note }}</didnote>{% endif %}
+					</did>
+				</c>
+				{% endfor %}
+			</c>
+			{% endfor %}
+		</dsc>
+	</archdesc>
+</ead>
