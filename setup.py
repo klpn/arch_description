@@ -50,6 +50,7 @@ build_exe_options = {'include_files': ['arch_description/toc16.vbs',
     'arch_description/templates/shipreport.docx', 
     'arch_description/templates/shipreport.md', 
     'arch_description/templates/shipreport.tex',
+    'arch_description/templates/ead.xml',
     'C:\\Python27\\Lib\\site-packages\\pypandoc\\files\\pandoc.exe'],
     'zip_includes': include_files()}
 
