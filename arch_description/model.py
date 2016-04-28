@@ -21,6 +21,7 @@ from camelot.core.orm import Entity
 from camelot.types import File
 
 class Creator( Entity ):
+    """Arkivbildare"""
     __tablename__ = 'creators'
     id = Column(Integer, primary_key = True)
     crname = Column(String, info = {'label': 'Namn'})
@@ -41,6 +42,7 @@ class Creator( Entity ):
         form_actions = [DescriptionReport(), LabelReport(), ProcdescReport()]
 
 class Agency( Entity ):
+    """Arkivinstitutioner"""
     __tablename__ = 'agencies'
     id = Column(Integer, primary_key = True)
     agname = Column(String)
@@ -57,6 +59,7 @@ class Agency( Entity ):
                 'agcode': {'name': 'Kod'}}
 
 class Archive( Entity ):
+    u"""Arkiv som förtecknas enligt allmänna arkivschemat"""
     __tablename__ = 'archives'
     id = Column(Integer, primary_key = True)
     creator_id = Column(Integer, ForeignKey('creators.id'))
@@ -91,6 +94,7 @@ class Archive( Entity ):
         form_actions = [DescriptionReport(), LabelReport(), ShippingReport(), EadReport()]
 
 class ArchObject( Entity ):
+    u"""Arkivobjekt (redovisas separat i processorienterad redovisning)."""
     __tablename__ = 'arch_objects'
     id = Column(Integer, primary_key = True)
     signum = Column(String)
@@ -125,6 +129,7 @@ class ArchObject( Entity ):
                 'storage_units': {'name': u'Förvaringsenheter'}}
  
 class Division( Entity ):
+    u"""Verksamhetsområden i processorienterad redovisning."""
     __tablename__ = 'divisions'
     id = Column(Integer, primary_key = True)
     signum = Column(String)
@@ -149,6 +154,7 @@ class Division( Entity ):
                 'processes': {'name': 'Processer'}}
 
 class Procgroup( Entity ):
+    """Processgrupper i processorienterad redovisning."""
     __tablename__ = 'procgroups'
     id = Column(Integer, primary_key = True)
     signum = Column(String)
@@ -173,6 +179,7 @@ class Procgroup( Entity ):
                 'processes': {'name': 'Processer'}}
 
 class Process( Entity ):
+    """Processer i processorienterad redovisning."""
     __tablename__ = 'processes'
     id = Column(Integer, primary_key = True)
     signum = Column(String)
@@ -212,6 +219,7 @@ class Process( Entity ):
                 'storage_units': {'name': u'Förvaringsenheter'}}
  
 class Acttype( Entity ):
+    """Handlingstyper i processorienterad redovisning."""
     __tablename__ = 'acttypes'
     id = Column(Integer, primary_key = True)
     signum = Column(String)
@@ -241,6 +249,7 @@ class Acttype( Entity ):
                 'storage_units': {'name': u'Förvaringsenheter'}}   
  
 class StorageUnit( Entity ):
+    u"""Förvaringsenheter i processorienterad redovisning."""
     __tablename__ = 'storage_units'
     id = Column(Integer, primary_key = True)
     signum = Column(Integer)
@@ -279,6 +288,7 @@ class StorageUnit( Entity ):
 
 
 class Series( Entity ):
+    u"""Serier i arkiv som förtecknas enligt allmänna arkivschemat"""
     __tablename__ = 'series'
     id = Column(Integer, primary_key = True)
     signum = Column(String)
@@ -308,6 +318,7 @@ class Series( Entity ):
                 'volumes': {'name': 'Volymer'}}
 
 class Volume( Entity ):
+    u"""Volymer i serier i arkiv som förtecknas enligt allmänna arkivschemat"""
     __tablename__ = 'volumes'
     volno = Column(Integer)
     series_id = Column(Integer, ForeignKey('series.id'))

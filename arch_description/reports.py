@@ -25,6 +25,7 @@ import natsort
 from operator import attrgetter
 
 def outformat_options(outformat, templname):
+    u"""Inställningar för filformat för rapporter"""
     if outformat == 'docx':
         pdoc_writer = 'docx'
         templsetting = 'reference-docx'
@@ -45,6 +46,7 @@ def outformat_options(outformat, templname):
 
 def convert_report(templsetting, templfullname, reportsrc,
         report_fullfilename, pdoc_writer, pdoc_extra_args = []):
+    u"""Inställningar för generering av rapporter via Pandoc"""
     import pypandoc
     pdoc_args = (['--smart', '--standalone', '--latex-engine=xelatex', 
             '--columns=60', '--' + templsetting + '=' + templfullname,
@@ -58,6 +60,7 @@ def convert_report(templsetting, templfullname, reportsrc,
         subprocess.Popen(['wscript', tocscript, report_fullfilename])
 
 class DescriptionReport( Action ):
+    u"""Förteckning (inklusive arkivbeskrivning) för arkiv med allmänna arkivschemat"""
     verbose_name = _(u'Spara förteckning')
     icon = Icon('tango/22x22/mimetypes/x-office-document.png')
     
@@ -99,6 +102,7 @@ class DescriptionReport( Action ):
                 report_fullfilename, of_opt['pdoc_writer'], ['--toc'])
 
 class ShippingReport( Action ):
+    u"""Leveransreversal"""
     verbose_name = _(u'Spara leveransreversal')
     icon = Icon('tango/22x22/mimetypes/x-office-document.png')
     
@@ -129,6 +133,7 @@ class ShippingReport( Action ):
                 report_fullfilename, of_opt['pdoc_writer'])
 
 class ProcdescReport( Action ):
+    u"""Bevarandeförteckning för arkiv med processorienterad redovisning"""
     verbose_name = _(u'Spara arkivbeskrivning')
     icon = Icon('tango/22x22/mimetypes/x-office-document.png')
     
@@ -158,6 +163,7 @@ class ProcdescReport( Action ):
                 report_fullfilename, of_opt['pdoc_writer'])
 
 class LabelReport( Action ):
+    u"""Etiketter för arkivkartonger (genereras som PDF via ReportLab)"""
     verbose_name = _('Spara etiketter')
     icon = Icon('tango/22x22/mimetypes/x-office-document.png')
     
@@ -264,6 +270,7 @@ class LabelReport( Action ):
         c.save()
 
 class EadReport( Action ):
+    u"""EAD XML för arkiv med allmänna arkivschemat"""
     verbose_name = _(u'Spara EAD XML')
     icon = Icon('tango/22x22/mimetypes/x-office-document.png')
 
@@ -288,6 +295,7 @@ def addext(filename, ext):
             return filename
 
 class OutputOptions( object ):
+    u"""Dialog med inställningar för rapporter"""
     def __init__(self):
         self.outformat = 'docx'
         self.converter = 'pandoc'
@@ -306,6 +314,7 @@ class OutputOptions( object ):
             ('docverter', 'Docverter (online)')], 'editable': True}}
 
 class LabelOptions( object ):
+    u"""Dialog med inställningar för kartongetiketter som hämtas från JSON-fil"""
     def __init__(self):
         import json
         lo = json.load(open(os.path.join(templdir, 'labeloptions.json')))
